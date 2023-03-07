@@ -1,0 +1,22 @@
+[package]
+name = "gelato-relay"
+version = "0.1.0"
+description = "Gelato Relay Wrapper that can be invoked from any language with a Polywrap client"
+authors = [
+  "Kris Bitney <kris@dorg.tech>",
+]
+repository = "https://github.com/polywrap/ethereum"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+polywrap-wasm-rs = "0.10.0-pre.11"
+serde = { version = "1.0.152", features = ["derive"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 'z'
+lto = true
+panic = 'abort'
