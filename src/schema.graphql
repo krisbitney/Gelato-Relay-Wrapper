@@ -1,5 +1,28 @@
+#import { Module, Request, Response, ResponseType } into Http from "wrap://ens/wraps.eth:http@1.1.0"
 
 type Module {
+    """
+    @param {CallWithSyncFeeRequest} request - CallWithSyncFee request to be relayed by Gelato Executors
+    @param {RelayRequestOptions} [options] - Optional Relay configuration
+    @returns {Promise<RelayResponse>} Response object with taskId parameter
+    """
+    callWithSyncFee(
+        request: CallWithSyncFeeRequest!,
+        options: RelayRequestOptions
+    ): RelayResponse!
+
+    """
+    @param {SponsoredCallRequest} request SponsoredCallRequest to be relayed by the Gelato Executors.
+    @param {string} sponsorApiKey Sponsor API key to be used for the call
+    @param {RelayRequestOptions} [options] Optional Relay configuration
+    @returns {Promise<RelayResponse>} Response object with taskId parameter
+    """
+    sponsoredCall(
+        request: SponsoredCallRequest!
+        sponsorApiKey: String!
+        options: RelayRequestOptions
+    ): RelayResponse!
+
     """
     @param {number} chainId - Chain Id
     @param {string} paymentToken - Payment Token
@@ -20,31 +43,7 @@ type Module {
     @param {string} taskId - Task Id
     @returns {Promise<TransactionStatusResponse | undefined>} Transaction status of the task id
     """
-    getTaskStatus(
-        taskId: String!
-    ): TransactionStatusResponse
-
-    """
-    @param {SponsoredCallRequest} request SponsoredCallRequest to be relayed by the Gelato Executors.
-    @param {string} sponsorApiKey Sponsor API key to be used for the call
-    @param {RelayRequestOptions} [options] Optional Relay configuration
-    @returns {Promise<RelayResponse>} Response object with taskId parameter
-    """
-    sponsoredCall(
-        request: SponsoredCallRequest!
-        sponsorApiKey: String!
-        options: RelayRequestOptions
-    ): RelayResponse!
-
-    """
-    @param {CallWithSyncFeeRequest} request - CallWithSyncFee request to be relayed by Gelato Executors
-    @param {RelayRequestOptions} [options] - Optional Relay configuration
-    @returns {Promise<RelayResponse>} Response object with taskId parameter
-    """
-    callWithSyncFee(
-        request: CallWithSyncFeeRequest!,
-        options: RelayRequestOptions
-    ): RelayResponse!
+    getTaskStatus(taskId: String!): TransactionStatusResponse
 }
 
 type RelayResponse {
