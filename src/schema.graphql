@@ -1,4 +1,94 @@
 
 type Module {
+    """
+    @param {number} chainId - Chain Id
+    @param {string} paymentToken - Payment Token
+    @param {BigNumber} gasLimit - Gas Limit
+    @param {boolean} isHighPriority - Priority Level
+    @param {BigNumber} [gasLimitL1=BigNumber.from(0)] - Gas Limit for Layer 1
+    @returns {Promise<BigNumber>} Estimated Fee
+    """
+    getEstimatedFee(
+        chainId: BigInt!
+        paymentToken: String!
+        gasLimit: BigInt!
+        isHighPriority: Boolean!
+        gasLimitL1: BigInt
+    ): BigInt!
 
+    """
+    @param {string} taskId - Task Id
+    @returns {Promise<TransactionStatusResponse | undefined>} Transaction status of the task id
+    """
+    getTaskStatus(
+        taskId: String!
+    ): TransactionStatusResponse
+
+    """
+    @param {SponsoredCallRequest} request SponsoredCallRequest to be relayed by the Gelato Executors.
+    @param {string} sponsorApiKey Sponsor API key to be used for the call
+    @param {RelayRequestOptions} [options] Optional Relay configuration
+    @returns {Promise<RelayResponse>} Response object with taskId parameter
+    """
+    sponsoredCall(
+        request: SponsoredCallRequest!
+        sponsorApiKey: String!
+        options: RelayRequestOptions
+    ): RelayResponse!
+
+    """
+    @param {CallWithSyncFeeRequest} request - CallWithSyncFee request to be relayed by Gelato Executors
+    @param {RelayRequestOptions} [options] - Optional Relay configuration
+    @returns {Promise<RelayResponse>} Response object with taskId parameter
+    """
+    callWithSyncFee(
+        request: CallWithSyncFeeRequest!,
+        options: RelayRequestOptions
+    ): RelayResponse!
+}
+
+type RelayResponse {
+    taskId: String!
+}
+
+type TransactionStatusResponse {
+    chainId: BigInt!
+    taskId: String!
+    taskState: TaskState!
+    creationDate: String!
+    lastCheckDate: String
+    lastCheckMessage: String
+    transactionHash: String
+    blockNumber: BigInt
+    executionDate: String
+}
+
+enum TaskState {
+    CheckPending
+    ExecPending
+    ExecSuccess
+    ExecReverted
+    WaitingForConfirmation
+    Blacklisted
+    Cancelled
+    NotFound
+}
+
+type SponsoredCallRequest {
+    chainId: BigInt!
+    target: String!
+    data: Bytes!
+}
+
+type RelayRequestOptions {
+    gasLimit: BigInt
+    retries: Int
+}
+
+type CallWithSyncFeeRequest {
+    chainId: BigInt!
+    target: String!
+    data: Bytes!
+    feeToken: String!
+    isRelayContext: Boolean
 }
