@@ -5,7 +5,7 @@ module.exports = {
   testMatch: [
     "**/?(*.)+(spec|test).+(ts|tsx|js)",
   ],
-  testIgnorePatterns: ["/.polywrap/"],
+  testPathIgnorePatterns: ["/.polywrap"],
   transform: {
     "^.+\\.(ts|tsx)$": [
       "ts-jest", {

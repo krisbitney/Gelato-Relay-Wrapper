@@ -6,7 +6,7 @@ use crate::library::constants::GELATO_RELAY_URL;
 use serde::{Deserialize};
 
 #[derive(Deserialize)]
-struct EstimatedFeeResponseContainer {
+struct EstimatedFeeResponse {
     estimated_fee: String,
 }
 
@@ -59,7 +59,7 @@ pub fn get_estimate(chain_id: &BigInt, data: &JSON::Value) -> Result<BigInt, Str
         Err(e) => return Err(format!("GelatoRelayWrapper/get_estimate: Failed with error: {}", e)),
     };
     let estimated_fee = match response_body {
-        Some(data) => JSON::from_str::<EstimatedFeeResponseContainer>(&data).unwrap().estimated_fee,
+        Some(data) => JSON::from_str::<EstimatedFeeResponse>(&data).unwrap().estimated_fee,
         None => return Err("GelatoRelayWrapper/get_estimate: Failed with error: No data returned".to_string()),
     };
     estimated_fee.parse::<BigInt>()
