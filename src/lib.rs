@@ -27,26 +27,46 @@ pub fn call_with_sync_fee(args: ArgsCallWithSyncFee) -> RelayResponse {
         data["retries"] = JSON::json!(options.retries);
     }
 
-    let http_request = HttpRequest {
-        headers: None,
-        url_params: None,
-        response_type: HttpResponseType::TEXT,
-        body: Some(data.to_string()),
-        form_data: None,
-        timeout: None,
-    };
-
-    http::post_relay(RelayCall::CallWithSyncFee, http_request).unwrap()
+    http::post_relay(RelayCall::CallWithSyncFee, &data).unwrap()
 }
 
 pub fn sponsored_call(args: ArgsSponsoredCall) -> RelayResponse {
-    RelayResponse { task_id: String::from("") }
+    let is_supported = network::is_network_supported(&args.request.chain_id);
+    match is_supported {
+        Ok(false) => panic!("`Chain id [{}] is not supported`", args.request.chain_id.to_string()),
+        Err(e) => panic!("{}", e),
+        _ => {}
+    }
+
+    let mut data: JSON::Value = JSON::json!({
+        "sponsorApiKey": args.sponsor_api_key,
+        "chainId": args.request.chain_id,
+        "target": address::get_checksum_address(&args.request.target),
+        "data": args.request.data,
+    });
+
+    if let Some(options) = args.options {
+        data["gasLimit"] = JSON::json!(options.gas_limit);
+        data["retries"] = JSON::json!(options.retries);
+    }
+
+    http::post_relay(RelayCall::SponsoredCall, &data).unwrap()
 }
 
 pub fn get_estimated_fee(args: ArgsGetEstimatedFee) -> BigInt {
-    BigInt::from(0)
+    let params: JSON::Value = JSON::json!({
+        "paymentToken": args.payment_token,
+        "gasLimit": args.gas_limit,
+        "isHighPriority": args.is_high_priority,
+        "gasLimitL1": args.gas_limit_l1.unwrap_or(BigInt::from(0)),
+    });
+    let data: JSON::Value = JSON::json!({
+       "params": params
+    });
+
+    http::get_estimate(&args.chain_id, &data).unwrap()
 }
 
 pub fn get_task_status(args: ArgsGetTaskStatus) -> Option<TransactionStatusResponse> {
-    None
+    http::get_task_status(&args.task_id).unwrap()
 }
