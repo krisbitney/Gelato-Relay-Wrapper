@@ -14,6 +14,8 @@
     "deploy": "npx polywrap deploy -o deployment.json"
   },
   "devDependencies": {
+    "@polywrap/client-js": "0.10.0-pre.11",
+    "@polywrap/cli-js": "0.10.0-pre.11",
     "@types/jest": "27.0.3",
     "jest": "26.6.3",
     "polywrap": "0.10.0-pre.11",
