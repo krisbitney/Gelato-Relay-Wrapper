@@ -1,7 +1,7 @@
 mod wrap;
 mod library;
 
-use polywrap_wasm_rs::BigInt;
+use polywrap_wasm_rs::{BigInt, JSON};
 use wrap::*;
 use library::*;
 use crate::library::relay_call::RelayCall;
@@ -14,26 +14,24 @@ pub fn call_with_sync_fee(args: ArgsCallWithSyncFee) -> RelayResponse {
         _ => {}
     }
 
-    // TODO: need to create http request
+    let mut data: JSON::Value = JSON::json!({
+        "chainId": args.request.chain_id,
+        "target": args.request.target,
+        "data": args.request.data,
+        "feeToken": args.request.fee_token,
+        "isRelayContext": args.request.is_relay_context,
+    });
 
-    // type RelayRequestOptions {
-    //     gasLimit: BigInt
-    //     retries: Int
-    // }
-    //
-    // type CallWithSyncFeeRequest {
-    //     chainId: BigInt!
-    //     target: String!
-    //     data: Bytes!
-    //     feeToken: String!
-    //     isRelayContext: Boolean // defaults to true
-    // }
+    if let Some(options) = args.options {
+        data["gasLimit"] = JSON::json!(options.gas_limit);
+        data["retries"] = JSON::json!(options.retries);
+    }
 
     let http_request = HttpRequest {
         headers: None,
         url_params: None,
         response_type: HttpResponseType::TEXT,
-        body: None,
+        body: Some(data.to_string()),
         form_data: None,
         timeout: None,
     };
