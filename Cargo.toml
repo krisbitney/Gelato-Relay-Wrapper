@@ -10,8 +10,9 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-polywrap-wasm-rs = "0.10.0-pre.11"
-serde = { version = "1.0.152", features = ["derive"] }
+polywrap-wasm-rs = "0.10.0-pre.12"
+serde = { version = "1.0.155", features = ["derive"] }
+hex = "0.4.3"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

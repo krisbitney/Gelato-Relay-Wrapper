@@ -1,18 +1,41 @@
 use polywrap_wasm_rs::{BigInt, JSON};
 use crate::library::relay_call::{RelayCall, relay_call_path};
-use crate::wrap::{HttpModule, HttpRequest, HttpResponseType, RelayResponse, TransactionStatusResponse};
+use crate::wrap::{get_task_state_value, HttpModule, HttpRequest, HttpResponseType, RelayResponse, TransactionStatusResponse};
 use crate::wrap::imported::{ArgsGet, ArgsPost};
 use crate::library::constants::GELATO_RELAY_URL;
 use serde::{Deserialize};
 
 #[derive(Deserialize)]
 struct EstimatedFeeResponse {
+    #[serde(rename = "estimatedFee")]
     estimated_fee: String,
 }
 
 #[derive(Deserialize)]
-struct TransactionStatusResponseContainer {
-    task: TransactionStatusResponse,
+struct TaskStatusResponse {
+    task: TaskResponse,
+}
+
+#[derive(Deserialize)]
+pub struct TaskResponse {
+    #[serde(rename(deserialize = "chainId"))]
+    pub chain_id: u64,
+    #[serde(rename(deserialize = "taskId"))]
+    pub task_id: String,
+    #[serde(rename(deserialize = "taskState"))]
+    pub task_state: String,
+    #[serde(rename(deserialize = "creationDate"))]
+    pub creation_date: String,
+    #[serde(rename(deserialize = "lastCheckDate"))]
+    pub last_check_date: Option<String>,
+    #[serde(rename(deserialize = "lastCheckMessage"))]
+    pub last_check_message: Option<String>,
+    #[serde(rename(deserialize = "transactionHash"))]
+    pub transaction_hash: Option<String>,
+    #[serde(rename(deserialize = "blockNumber"))]
+    pub block_number: Option<u64>,
+    #[serde(rename(deserialize = "executionDate"))]
+    pub execution_date: Option<String>,
 }
 
 pub fn post_relay(relay_call: RelayCall, data: &JSON::Value) -> Result<RelayResponse, String> {
@@ -76,9 +99,26 @@ pub fn get_task_status(task_id: &str) -> Result<Option<TransactionStatusResponse
         Ok(None) => return Err("GelatoRelayWrapper/get_task_status: Failed with error: No data returned".to_string()),
         Err(e) => return Err(format!("GelatoRelayWrapper/get_task_status: Failed with error: {}", e)),
     };
-    let transaction_status_response: TransactionStatusResponse = match response_body {
-        Some(data) => JSON::from_str::<TransactionStatusResponseContainer>(&data).unwrap().task,
+
+    let task_response: TaskResponse = match response_body.clone() {
+        Some(data) => JSON::from_str::<TaskStatusResponse>(&data).unwrap().task,
         None => return Ok(None),
     };
-    Ok(Some(transaction_status_response))
+    Ok(Some(
+        TransactionStatusResponse {
+            chain_id: BigInt::from(task_response.chain_id),
+            task_id: task_response.task_id,
+            task_state: get_task_state_value(&task_response.task_state).unwrap(),
+            creation_date: task_response.creation_date,
+            last_check_date: task_response.last_check_date,
+            last_check_message: task_response.last_check_message,
+            transaction_hash: task_response.transaction_hash,
+            block_number: if task_response.block_number.is_some() {
+                Some(BigInt::from(task_response.block_number.unwrap()))
+            } else {
+                None
+            },
+            execution_date: task_response.execution_date,
+        }
+    ))
 }

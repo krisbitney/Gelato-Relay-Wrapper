@@ -14,17 +14,24 @@ pub fn call_with_sync_fee(args: ArgsCallWithSyncFee) -> RelayResponse {
         _ => {}
     }
 
+    let chain_id = u64::from_str_radix(args.request.chain_id.to_string().as_str(), 10).unwrap();
+    let hex_data = format!("0x{}", hex::encode(args.request.data));
+
     let mut data: JSON::Value = JSON::json!({
-        "chainId": args.request.chain_id,
+        "chainId": chain_id,
         "target": args.request.target,
-        "data": args.request.data,
+        "data": hex_data,
         "feeToken": args.request.fee_token,
         "isRelayContext": args.request.is_relay_context,
     });
 
     if let Some(options) = args.options {
-        data["gasLimit"] = JSON::json!(options.gas_limit);
-        data["retries"] = JSON::json!(options.retries);
+        if let Some(gas_limit) = options.gas_limit {
+            data["gasLimit"] = JSON::json!(gas_limit.to_string());
+        }
+        if let Some(retries) = options.retries {
+            data["retries"] = JSON::json!(retries);
+        }
     }
 
     http::post_relay(RelayCall::CallWithSyncFee, &data).unwrap()
@@ -38,27 +45,39 @@ pub fn sponsored_call(args: ArgsSponsoredCall) -> RelayResponse {
         _ => {}
     }
 
+    let chain_id = u64::from_str_radix(args.request.chain_id.to_string().as_str(), 10).unwrap();
+    let hex_data = format!("0x{}", hex::encode(args.request.data));
+
     let mut data: JSON::Value = JSON::json!({
         "sponsorApiKey": args.sponsor_api_key,
-        "chainId": args.request.chain_id,
-        "target": address::get_checksum_address(&args.request.target),
-        "data": args.request.data,
+        "chainId": chain_id,
+        "target": args.request.target.to_string(),
+        "data": hex_data,
     });
 
     if let Some(options) = args.options {
-        data["gasLimit"] = JSON::json!(options.gas_limit);
-        data["retries"] = JSON::json!(options.retries);
+        if let Some(gas_limit) = options.gas_limit {
+            let gas_limit_number = u64::from_str_radix(gas_limit.to_string().as_str(), 10).unwrap();
+            data["gasLimit"] = JSON::json!(gas_limit_number);
+        }
+        if let Some(retries) = options.retries {
+            data["retries"] = JSON::json!(retries);
+        }
     }
 
     http::post_relay(RelayCall::SponsoredCall, &data).unwrap()
 }
 
 pub fn get_estimated_fee(args: ArgsGetEstimatedFee) -> BigInt {
+    let gas_limit = u64::from_str_radix(args.gas_limit.to_string().as_str(), 10).unwrap();
+    let gas_limit_l1_unwrapped = args.gas_limit_l1.unwrap_or(BigInt::from(0));
+    let gas_limit_l1 = u64::from_str_radix(gas_limit_l1_unwrapped.to_string().as_str(), 10).unwrap();
+
     let params: JSON::Value = JSON::json!({
         "paymentToken": args.payment_token,
-        "gasLimit": args.gas_limit,
+        "gasLimit": gas_limit,
         "isHighPriority": args.is_high_priority,
-        "gasLimitL1": args.gas_limit_l1.unwrap_or(BigInt::from(0)),
+        "gasLimitL1": gas_limit_l1,
     });
     let data: JSON::Value = JSON::json!({
        "params": params

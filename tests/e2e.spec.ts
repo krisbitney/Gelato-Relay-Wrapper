@@ -39,7 +39,7 @@ describe("Gelato Relay Wrapper", () => {
         request: {
           chainId: "5", // goerli
           target: myDummyWallet,
-          data: Buffer.from(data.value, "hex"),
+          data: Uint8Array.from(Buffer.from(data.value, "base64")),
           feeToken,
           isRelayContext: true,
         },
@@ -51,7 +51,6 @@ describe("Gelato Relay Wrapper", () => {
 
     if (!result.ok) throw result.error
     expect(result.value.taskId).toBeDefined();
-    console.log(result.value)
   });
 
   test("sponsoredCall should return a valid response", async () => {
@@ -75,10 +74,11 @@ describe("Gelato Relay Wrapper", () => {
       uri,
       method: "sponsoredCall",
       args: {
+        sponsorApiKey: "VDbhriNNK5r71OcPNTzp_c2QrS7RNJ2eDwsWE5jzkmY_",
         request: {
           chainId: "5", // goerli
           target: counter,
-          data,
+          data: Uint8Array.from(Buffer.from(data.value, "base64")),
         },
         options: {
           gasLimit: "1000000",
@@ -115,13 +115,15 @@ describe("Gelato Relay Wrapper", () => {
     if (!result.ok) throw result.error
 
     const expected = {
-      chainId: 5,
+      chainId: "5",
       taskId: "0x93a3defc618ff97c32a37bdd567b15c50748a5c3e8e858bca67f0c967b74a7fe",
-      taskState: "ExecSuccess",
+      taskState: 2,
       creationDate: "2022-10-10T10:15:03.932Z",
       executionDate: "2022-10-10T10:15:28.718Z",
       transactionHash: "0x9d260d1bbe075be0cda52a3271df062748f3182ede91b3aae5cd115f7b26552b",
-      blockNumber: 7744557
+      blockNumber: "7744557",
+      lastCheckDate: null,
+      lastCheckMessage: null,
     };
     expect(result.value).toStrictEqual(expected);
   });
