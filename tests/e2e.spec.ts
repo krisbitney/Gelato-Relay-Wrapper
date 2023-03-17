@@ -57,7 +57,6 @@ describe("Gelato Relay Wrapper", () => {
     // set up target address and function signature abi
     const counter = "0xEEeBe2F778AA186e88dCf2FEb8f8231565769C27";
     const abi = "function increment()";
-    const signer = "0x";
 
     // encode the payload
     const data = await client.invoke<string>({
@@ -65,7 +64,7 @@ describe("Gelato Relay Wrapper", () => {
       method: "encodeFunction",
       args: {
         method: abi,
-        args: [counter, abi, signer]
+        args: []
       }
     })
     if (!data.ok) throw data.error;
@@ -74,11 +73,11 @@ describe("Gelato Relay Wrapper", () => {
       uri,
       method: "sponsoredCall",
       args: {
-        sponsorApiKey: "VDbhriNNK5r71OcPNTzp_c2QrS7RNJ2eDwsWE5jzkmY_",
+        sponsorApiKey: "AiaCshYRyAUzTNfZZb8LftJaAl2SS3I8YwhJJXc5J7A_",
         request: {
           chainId: "5", // goerli
           target: counter,
-          data: Uint8Array.from(Buffer.from(data.value, "base64")),
+          data: data.value,
         },
         options: {
           gasLimit: "1000000",

@@ -77,7 +77,7 @@ enum TaskState {
 type SponsoredCallRequest {
     chainId: BigInt!
     target: String!
-    data: Bytes!
+    data: String!
 }
 
 type RelayRequestOptions {
@@ -88,7 +88,7 @@ type RelayRequestOptions {
 type CallWithSyncFeeRequest {
     chainId: BigInt!
     target: String!
-    data: Bytes!
+    data: String!
     feeToken: String!
     isRelayContext: Boolean
 }

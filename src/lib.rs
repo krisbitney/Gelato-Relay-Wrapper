@@ -46,22 +46,21 @@ pub fn sponsored_call(args: ArgsSponsoredCall) -> RelayResponse {
     }
 
     let chain_id = u64::from_str_radix(args.request.chain_id.to_string().as_str(), 10).unwrap();
-    let hex_data = format!("0x{}", hex::encode(args.request.data));
 
     let mut data: JSON::Value = JSON::json!({
         "sponsorApiKey": args.sponsor_api_key,
         "chainId": chain_id,
         "target": args.request.target.to_string(),
-        "data": hex_data,
+        "data": args.request.data.to_string(),
     });
 
     if let Some(options) = args.options {
         if let Some(gas_limit) = options.gas_limit {
             let gas_limit_number = u64::from_str_radix(gas_limit.to_string().as_str(), 10).unwrap();
-            data["gasLimit"] = JSON::json!(gas_limit_number);
+            data["gasLimit"] = gas_limit_number.to_string().into();
         }
         if let Some(retries) = options.retries {
-            data["retries"] = JSON::json!(retries);
+            data["retries"] = retries.into();
         }
     }
 
