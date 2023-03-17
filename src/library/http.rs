@@ -30,6 +30,10 @@ impl From<RelayedTransactionResponse> for RelayResponse {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct EstimateArgs(Map<String, String>);
+
+
 #[derive(Deserialize)]
 pub struct TaskResponse {
     #[serde(rename(deserialize = "chainId"))]
@@ -83,11 +87,12 @@ pub fn post_relay(relay_call: RelayCall, data: &JSON::Value) -> Result<RelayResp
 }
 
 pub fn get_estimate(chain_id: &BigInt, data: &JSON::Value) -> Result<BigInt, String> {
+    let url_params = JSON::from_value::<EstimateArgs>(data.to_owned()).unwrap(); 
     let http_request = HttpRequest {
         headers: None,
-        url_params: None,
+        url_params: Some(url_params.0),
         response_type: HttpResponseType::TEXT,
-        body: Some(data.to_string()),
+        body: None,
         form_data: None,
         timeout: None,
     };

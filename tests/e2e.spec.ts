@@ -39,7 +39,7 @@ describe("Gelato Relay Wrapper", () => {
         request: {
           chainId: "5", // goerli
           target: myDummyWallet,
-          data: Uint8Array.from(Buffer.from(data.value, "base64")),
+          data: data.value,
           feeToken,
           isRelayContext: true,
         },
