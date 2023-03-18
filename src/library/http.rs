@@ -1,4 +1,4 @@
-use polywrap_wasm_rs::{BigInt, JSON};
+use polywrap_wasm_rs::{BigInt, JSON, Map};
 use crate::library::relay_call::{RelayCall, relay_call_path};
 use crate::wrap::{get_task_state_value, HttpModule, HttpRequest, HttpResponseType, RelayResponse, TransactionStatusResponse};
 use crate::wrap::imported::{ArgsGet, ArgsPost};
@@ -15,6 +15,24 @@ struct EstimatedFeeResponse {
 struct TaskStatusResponse {
     task: TaskResponse,
 }
+
+#[derive(Deserialize)]
+pub struct RelayedTransactionResponse {
+    #[serde(rename = "taskId")]
+    pub task_id: String,
+}
+
+impl From<RelayedTransactionResponse> for RelayResponse {
+    fn from(to: RelayedTransactionResponse) -> Self {
+        Self {
+            task_id: to.task_id
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EstimateArgs(Map<String, String>);
+
 
 #[derive(Deserialize)]
 pub struct TaskResponse {
@@ -39,14 +57,17 @@ pub struct TaskResponse {
 }
 
 pub fn post_relay(relay_call: RelayCall, data: &JSON::Value) -> Result<RelayResponse, String> {
+    let mut headers = Map::new();
+    headers.insert("Content-Type".to_string(), "application/json".to_string());
     let http_request = HttpRequest {
-        headers: None,
+        headers: Some(headers),
         url_params: None,
         response_type: HttpResponseType::TEXT,
         body: Some(data.to_string()),
         form_data: None,
         timeout: None,
     };
+
     let result = HttpModule::post(&ArgsPost {
         url: relay_call_path(&relay_call),
         request: Some(http_request)
@@ -57,18 +78,21 @@ pub fn post_relay(relay_call: RelayCall, data: &JSON::Value) -> Result<RelayResp
         Err(e) => return Err(format!("GelatoRelayWrapper/post_relay: {} Failed with error: {}", relay_call, e)),
     };
     let relay_response: RelayResponse = match response_body {
-        Some(data) => JSON::from_str::<RelayResponse>(&data).unwrap(),
+        Some(data) => {
+            JSON::from_str::<RelayedTransactionResponse>(&data).unwrap().into()
+        },
         None => return Err(format!("GelatoRelayWrapper/post_relay: {} Failed with error: No data returned", relay_call)),
     };
     Ok(relay_response)
 }
 
 pub fn get_estimate(chain_id: &BigInt, data: &JSON::Value) -> Result<BigInt, String> {
+    let url_params = JSON::from_value::<EstimateArgs>(data.to_owned()).unwrap(); 
     let http_request = HttpRequest {
         headers: None,
-        url_params: None,
+        url_params: Some(url_params.0),
         response_type: HttpResponseType::TEXT,
-        body: Some(data.to_string()),
+        body: None,
         form_data: None,
         timeout: None,
     };
