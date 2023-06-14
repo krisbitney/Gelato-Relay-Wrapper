@@ -14,11 +14,11 @@
     "deploy": "npx polywrap deploy -o deployment.json"
   },
   "devDependencies": {
-    "@polywrap/client-js": "0.10.0-pre.12",
-    "@polywrap/cli-js": "0.10.0-pre.12",
+    "@polywrap/client-js": "0.10.1",
+    "@polywrap/cli-js": "0.10.3",
     "@types/jest": "27.0.3",
     "jest": "26.6.3",
-    "polywrap": "0.10.0-pre.12",
+    "polywrap": "0.10.3",
     "rimraf": "3.0.2",
     "ts-jest": "26.5.4",
     "typescript": "4.9.5"
