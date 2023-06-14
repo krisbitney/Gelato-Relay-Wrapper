@@ -10,7 +10,7 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-polywrap-wasm-rs = "0.10.0-pre.12"
+polywrap-wasm-rs = "0.10.3"
 serde = { version = "1.0.155", features = ["derive"] }
 
 [lib]
