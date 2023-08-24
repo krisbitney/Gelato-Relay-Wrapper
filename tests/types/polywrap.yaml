@@ -3,4 +3,4 @@ project:
   name: gelato-types
   type: app/typescript
 source:
-  schema: ../../src/schema.graphql
+  schema: ../../polywrap.graphql
