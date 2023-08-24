@@ -1,0 +1,46 @@
+name: gelato-relay-deployment
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  cd:
+    if: |
+      github.event.pull_request.merged &&
+      endsWith(github.event.pull_request.title, '/workflows/publish') &&
+      github.event.pull_request.user.login != 'github-actions'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Read .nvmrc
+        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+        id: nvm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+
+      - name: Install dependencies for wrap
+        run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
+
+      - name: Build wrap
+        run: yarn build
+
+      - name: Deploy wrap
+        run: yarn deploy
+        env:
+          POLYWRAP_WRAPSCAN_AUTH_HEADER_PROD: ${{secrets.POLYWRAP_WRAPSCAN_AUTH_HEADER_PROD}}
+
+      - name: PR New URI
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: gelero-relay-publish-pr-${{github.event.number}}
+          commit-message: "chore: gelero-relay wrap deployment uri"
+          title: "[CD]: gelero-relay wrap deployment uri"
+          body: "Triggered by: https://github.com/${{github.repository}}/pull/${{github.event.number}}"

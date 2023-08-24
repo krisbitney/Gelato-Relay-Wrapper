@@ -1,5 +1,4 @@
-#import { Module, Request, Response, ResponseType } into Http from "wrap://ens/wraps.eth:http@1.1.0"
-#import { Module } into Sha3 from "wrap://ens/wraps.eth:sha3@1.0.0"
+#import { Module, Request, Response, ResponseType } into Http from "wrapscan.io/polywrap/http@1.0"
 
 type Module {
     """

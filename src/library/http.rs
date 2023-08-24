@@ -1,9 +1,13 @@
-use polywrap_wasm_rs::{BigInt, JSON, Map};
-use crate::library::relay_call::{RelayCall, relay_call_path};
-use crate::wrap::{get_task_state_value, HttpModule, HttpRequest, HttpResponseType, RelayResponse, TransactionStatusResponse};
-use crate::wrap::imported::{ArgsGet, ArgsPost};
 use crate::library::constants::GELATO_RELAY_URL;
-use serde::{Deserialize};
+use crate::library::relay_call::{relay_call_path, RelayCall};
+use crate::wrap::imported::{ArgsGet, ArgsPost};
+use crate::wrap::{
+    get_task_state_value, HttpModule, HttpRequest, HttpResponseType, RelayResponse,
+    TransactionStatusResponse,
+};
+use polywrap_msgpack_serde::BigIntWrapper;
+use polywrap_wasm_rs::{BigInt, Map, JSON};
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 struct EstimatedFeeResponse {
@@ -25,14 +29,13 @@ pub struct RelayedTransactionResponse {
 impl From<RelayedTransactionResponse> for RelayResponse {
     fn from(to: RelayedTransactionResponse) -> Self {
         Self {
-            task_id: to.task_id
+            task_id: to.task_id,
         }
     }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct EstimateArgs(Map<String, String>);
-
 
 #[derive(Deserialize)]
 pub struct TaskResponse {
@@ -70,24 +73,39 @@ pub fn post_relay(relay_call: RelayCall, data: &JSON::Value) -> Result<RelayResp
 
     let result = HttpModule::post(&ArgsPost {
         url: relay_call_path(&relay_call),
-        request: Some(http_request)
+        request: Some(http_request),
     });
     let response_body = match result {
         Ok(Some(response)) => response.body,
-        Ok(None) => return Err(format!("GelatoRelayWrapper/post_relay: {} Failed with error: No data returned", relay_call)),
-        Err(e) => return Err(format!("GelatoRelayWrapper/post_relay: {} Failed with error: {}", relay_call, e)),
+        Ok(None) => {
+            return Err(format!(
+                "GelatoRelayWrapper/post_relay: {} Failed with error: No data returned",
+                relay_call
+            ))
+        }
+        Err(e) => {
+            return Err(format!(
+                "GelatoRelayWrapper/post_relay: {} Failed with error: {}",
+                relay_call, e
+            ))
+        }
     };
     let relay_response: RelayResponse = match response_body {
-        Some(data) => {
-            JSON::from_str::<RelayedTransactionResponse>(&data).unwrap().into()
-        },
-        None => return Err(format!("GelatoRelayWrapper/post_relay: {} Failed with error: No data returned", relay_call)),
+        Some(data) => JSON::from_str::<RelayedTransactionResponse>(&data)
+            .unwrap()
+            .into(),
+        None => {
+            return Err(format!(
+                "GelatoRelayWrapper/post_relay: {} Failed with error: No data returned",
+                relay_call
+            ))
+        }
     };
     Ok(relay_response)
 }
 
-pub fn get_estimate(chain_id: &BigInt, data: &JSON::Value) -> Result<BigInt, String> {
-    let url_params = JSON::from_value::<EstimateArgs>(data.to_owned()).unwrap(); 
+pub fn get_estimate(chain_id: &BigIntWrapper, data: &JSON::Value) -> Result<BigIntWrapper, String> {
+    let url_params = JSON::from_value::<EstimateArgs>(data.to_owned()).unwrap();
     let http_request = HttpRequest {
         headers: None,
         url_params: Some(url_params.0),
@@ -97,52 +115,90 @@ pub fn get_estimate(chain_id: &BigInt, data: &JSON::Value) -> Result<BigInt, Str
         timeout: None,
     };
     let result = HttpModule::get(&ArgsGet {
-        url: format!("{}/oracles/{}/estimate", GELATO_RELAY_URL, chain_id.to_string()),
-        request: Some(http_request)
+        url: format!(
+            "{}/oracles/{}/estimate",
+            GELATO_RELAY_URL,
+            chain_id.0.to_string()
+        ),
+        request: Some(http_request),
     });
     let response_body = match result {
         Ok(Some(response)) => response.body,
-        Ok(None) => return Err("GelatoRelayWrapper/get_estimate: Failed with error: No data returned".to_string()),
-        Err(e) => return Err(format!("GelatoRelayWrapper/get_estimate: Failed with error: {}", e)),
+        Ok(None) => {
+            return Err(
+                "GelatoRelayWrapper/get_estimate: Failed with error: No data returned".to_string(),
+            )
+        }
+        Err(e) => {
+            return Err(format!(
+                "GelatoRelayWrapper/get_estimate: Failed with error: {}",
+                e
+            ))
+        }
     };
     let estimated_fee = match response_body {
-        Some(data) => JSON::from_str::<EstimatedFeeResponse>(&data).unwrap().estimated_fee,
-        None => return Err("GelatoRelayWrapper/get_estimate: Failed with error: No data returned".to_string()),
+        Some(data) => {
+            JSON::from_str::<EstimatedFeeResponse>(&data)
+                .unwrap()
+                .estimated_fee
+        }
+        None => {
+            return Err(
+                "GelatoRelayWrapper/get_estimate: Failed with error: No data returned".to_string(),
+            )
+        }
     };
-    estimated_fee.parse::<BigInt>()
-        .map_err(|e| format!("GelatoRelayWrapper/get_estimate: Failed with error: {}", e))
+    let estimated_fee = estimated_fee
+        .parse::<BigInt>()
+        .map_err(|e| format!("GelatoRelayWrapper/get_estimate: Failed with error: {}", e));
+
+    if let Ok(fee) = estimated_fee {
+        Ok(BigIntWrapper(fee))
+    } else {
+        Err(estimated_fee.unwrap_err())
+    }
 }
 
 pub fn get_task_status(task_id: &str) -> Result<Option<TransactionStatusResponse>, String> {
     let result = HttpModule::get(&ArgsGet {
         url: format!("{}/tasks/status/{}", GELATO_RELAY_URL, task_id),
-        request: None
+        request: None,
     });
     let response_body = match result {
         Ok(Some(response)) => response.body,
-        Ok(None) => return Err("GelatoRelayWrapper/get_task_status: Failed with error: No data returned".to_string()),
-        Err(e) => return Err(format!("GelatoRelayWrapper/get_task_status: Failed with error: {}", e)),
+        Ok(None) => {
+            return Err(
+                "GelatoRelayWrapper/get_task_status: Failed with error: No data returned"
+                    .to_string(),
+            )
+        }
+        Err(e) => {
+            return Err(format!(
+                "GelatoRelayWrapper/get_task_status: Failed with error: {}",
+                e
+            ))
+        }
     };
 
     let task_response: TaskResponse = match response_body.clone() {
         Some(data) => JSON::from_str::<TaskStatusResponse>(&data).unwrap().task,
         None => return Ok(None),
     };
-    Ok(Some(
-        TransactionStatusResponse {
-            chain_id: BigInt::from(task_response.chain_id),
-            task_id: task_response.task_id,
-            task_state: get_task_state_value(&task_response.task_state).unwrap(),
-            creation_date: task_response.creation_date,
-            last_check_date: task_response.last_check_date,
-            last_check_message: task_response.last_check_message,
-            transaction_hash: task_response.transaction_hash,
-            block_number: if task_response.block_number.is_some() {
-                Some(BigInt::from(task_response.block_number.unwrap()))
-            } else {
-                None
-            },
-            execution_date: task_response.execution_date,
-        }
-    ))
+    Ok(Some(TransactionStatusResponse {
+        chain_id: BigIntWrapper(BigInt::from(task_response.chain_id)),
+        task_id: task_response.task_id,
+        task_state: get_task_state_value(&task_response.task_state).unwrap(),
+        creation_date: task_response.creation_date,
+        last_check_date: task_response.last_check_date,
+        last_check_message: task_response.last_check_message,
+        transaction_hash: task_response.transaction_hash,
+        block_number: if task_response.block_number.is_some() {
+            Some(BigIntWrapper(BigInt::from(
+                task_response.block_number.unwrap(),
+            )))
+        } else {
+            None
+        },
+        execution_date: task_response.execution_date,
+    }))
 }

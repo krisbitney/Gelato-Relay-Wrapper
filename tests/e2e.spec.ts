@@ -1,20 +1,20 @@
-import {PolywrapClient} from "@polywrap/client-js";
+import { PolywrapClient } from "@polywrap/client-js";
 import * as Types from "./types/wrap";
 import * as path from "path";
-
 
 jest.setTimeout(360000);
 
 describe("Gelato Relay Wrapper", () => {
-  const client = new PolywrapClient()
-  let uri: string = `wrap://fs/${path.join(__dirname, "../")}/build`;
+  const client = new PolywrapClient();
+  let uri: string = `wrap://fs/${path.join(__dirname, "..")}/build`;
 
   test("callWithSyncFee should return a valid response", async () => {
     // target contract address
     const myDummyWallet = "0xA045eb75e78f4988d42c3cd201365bDD5D76D406";
 
     // using a human-readable ABI for generating the payload
-    const abi = "function sendToFriend(address _token,address _to,uint256 _amount)";
+    const abi =
+      "function sendToFriend(address _token,address _to,uint256 _amount)";
 
     // sendToFriend arguments
     const feeToken = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -23,13 +23,13 @@ describe("Gelato Relay Wrapper", () => {
 
     // encode the payload
     const data = await client.invoke<string>({
-      uri: "wrap://ens/wraps.eth:ethereum@1.1.0",
+      uri: "wrapscan.io/polywrap/ethers@1.0.2",
       method: "encodeFunction",
       args: {
         method: abi,
-        args: [feeToken, vitalik, amountToSend.toString()]
-      }
-    })
+        args: [feeToken, vitalik, amountToSend.toString()],
+      },
+    });
     if (!data.ok) throw data.error;
 
     const result = await client.invoke<Types.RelayResponse>({
@@ -45,11 +45,11 @@ describe("Gelato Relay Wrapper", () => {
         },
         options: {
           retries: 2,
-        }
-      }
+        },
+      },
     });
 
-    if (!result.ok) throw result.error
+    if (!result.ok) throw result.error;
     expect(result.value.taskId).toBeDefined();
   });
 
@@ -60,13 +60,13 @@ describe("Gelato Relay Wrapper", () => {
 
     // encode the payload
     const data = await client.invoke<string>({
-      uri: "wrap://ens/wraps.eth:ethereum@1.1.0",
+      uri: "wrapscan.io/polywrap/ethers@1.0.2",
       method: "encodeFunction",
       args: {
         method: abi,
-        args: []
-      }
-    })
+        args: [],
+      },
+    });
     if (!data.ok) throw data.error;
 
     const result = await client.invoke<Types.RelayResponse>({
@@ -82,11 +82,11 @@ describe("Gelato Relay Wrapper", () => {
         options: {
           gasLimit: "1000000",
           retries: 2,
-        }
-      }
+        },
+      },
     });
 
-    if (!result.ok) throw result.error
+    if (!result.ok) throw result.error;
     expect(result.value.taskId).toBeDefined();
   });
 
@@ -100,31 +100,35 @@ describe("Gelato Relay Wrapper", () => {
         gasLimit: "1000000",
         isHighPriority: true,
         gasLimitL1: "1000000",
-      }
+      },
     });
-    if (!result.ok) throw result.error
+    if (!result.ok) throw result.error;
   });
 
   test("getTaskStatus should return a valid response", async () => {
     const result = await client.invoke<Types.TransactionStatusResponse>({
       uri,
       method: "getTaskStatus",
-      args: { taskId: "0x93a3defc618ff97c32a37bdd567b15c50748a5c3e8e858bca67f0c967b74a7fe" }
+      args: {
+        taskId:
+          "0x93a3defc618ff97c32a37bdd567b15c50748a5c3e8e858bca67f0c967b74a7fe",
+      },
     });
-    if (!result.ok) throw result.error
+    if (!result.ok) throw result.error;
 
     const expected = {
       chainId: "5",
-      taskId: "0x93a3defc618ff97c32a37bdd567b15c50748a5c3e8e858bca67f0c967b74a7fe",
+      taskId:
+        "0x93a3defc618ff97c32a37bdd567b15c50748a5c3e8e858bca67f0c967b74a7fe",
       taskState: 2,
       creationDate: "2022-10-10T10:15:03.932Z",
       executionDate: "2022-10-10T10:15:28.718Z",
-      transactionHash: "0x9d260d1bbe075be0cda52a3271df062748f3182ede91b3aae5cd115f7b26552b",
+      transactionHash:
+        "0x9d260d1bbe075be0cda52a3271df062748f3182ede91b3aae5cd115f7b26552b",
       blockNumber: "7744557",
       lastCheckDate: null,
       lastCheckMessage: null,
     };
     expect(result.value).toStrictEqual(expected);
   });
-})
-
+});

@@ -1,0 +1,32 @@
+name: gelato-relay-build-and-test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  Build-And-Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Read .nvmrc
+        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+        id: nvm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: "${{ steps.nvm.outputs.NVMRC }}"
+
+      - name: Install dependencies for wrap
+        run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
+
+      - name: Build wrap
+        run: yarn build
+
+      - name: Test wrap
+        run: yarn test
