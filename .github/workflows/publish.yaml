@@ -10,7 +10,7 @@ jobs:
   Publish:
     if: |
       github.event.pull_request.merged &&
-      endsWith(github.event.pull_request.title, '/workflows/publish') &&
+      endsWith(github.event.pull_request.title, '/workflows/publish')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
