@@ -1,4 +1,4 @@
-name: gelato-relay-deployment
+name: gelato-relay-publish
 
 on:
   pull_request:
@@ -7,15 +7,14 @@ on:
       - main
 
 jobs:
-  cd:
+  Publish:
     if: |
       github.event.pull_request.merged &&
       endsWith(github.event.pull_request.title, '/workflows/publish') &&
-      github.event.pull_request.user.login != 'github-actions'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Read .nvmrc
         run: echo ::set-output name=NVMRC::$(cat .nvmrc)
@@ -40,7 +39,7 @@ jobs:
       - name: PR New URI
         uses: peter-evans/create-pull-request@v3
         with:
-          branch: gelero-relay-publish-pr-${{github.event.number}}
-          commit-message: "chore: gelero-relay wrap deployment uri"
-          title: "[CD]: gelero-relay wrap deployment uri"
+          branch: gelato-relay-publish-pr-${{github.event.number}}
+          commit-message: "chore: gelato-relay wrap deployment uri"
+          title: "[CD]: gelato-relay wrap deployment uri"
           body: "Triggered by: https://github.com/${{github.repository}}/pull/${{github.event.number}}"
