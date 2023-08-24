@@ -1,4 +1,4 @@
-pub const GELATO_RELAY_URL: &str = "https://relay.gelato.digital"; // Relay GW
+pub const GELATO_RELAY_URL: &str = "https://api.gelato.digital"; // Relay GW
 
 pub const SIGN_TYPED_DATA_V4: &str = "eth_signTypedData_v4";
 

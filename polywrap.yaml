@@ -1,10 +1,9 @@
-format: 0.3.0
+format: 0.5.0
 project:
   name: gelato-relay
   type: wasm/rust
 source:
   module: ./Cargo.toml
-  schema: ./src/schema.graphql
-  import_abis:
-    - uri: "wrap://ens/wraps.eth:http@1.1.0"
-      abi: ./schema.http.graphql
+  schema: ./polywrap.graphql
+extensions:
+  docs: ./polywrap.docs.yaml

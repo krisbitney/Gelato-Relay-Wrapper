@@ -5,12 +5,14 @@ description = "Gelato Relay Wrapper that can be invoked from any language with a
 authors = [
   "Kris Bitney <kris@dorg.tech>",
 ]
-repository = "https://github.com/polywrap/ethereum"
+repository = "https://github.com/polywrap/gelato-relay"
 license = "MIT"
 edition = "2021"
 
 [dependencies]
-polywrap-wasm-rs = "0.10.3"
+polywrap-wasm-rs = "0.11.2"
+serde_bytes = "0.11.5"
+polywrap_msgpack_serde = "0.0.2-beta.5"
 serde = { version = "1.0.155", features = ["derive"] }
 
 [lib]
