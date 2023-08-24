@@ -1,0 +1,5 @@
+format: 0.1.0
+description: Interact with Gelato Relayer HTTP API
+website: https://docs.gelato.network/developer-services/relay
+repository: https://github.com/polywrap/gelato-relay-wrap
+readme: ./README.md
