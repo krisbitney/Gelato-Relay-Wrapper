@@ -23,7 +23,7 @@ describe("Gelato Relay Wrapper", () => {
 
     // encode the payload
     const data = await client.invoke<string>({
-      uri: "wrapscan.io/polywrap/ethers@1.0.2",
+      uri: "wrapscan.io/polywrap/ethers@1.1.0",
       method: "encodeFunction",
       args: {
         method: abi,
@@ -60,7 +60,7 @@ describe("Gelato Relay Wrapper", () => {
 
     // encode the payload
     const data = await client.invoke<string>({
-      uri: "wrapscan.io/polywrap/ethers@1.0.2",
+      uri: "wrapscan.io/polywrap/ethers@1.1.0",
       method: "encodeFunction",
       args: {
         method: abi,
