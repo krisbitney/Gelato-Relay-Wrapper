@@ -1,1 +1,1 @@
-wrap://ipfs/QmYbAh4UD6iA22EEQYY6FGW8enBR2M6RRstN3Qk4ozs9pV
+wrap://http/https://wraps.wrapscan.io/r/polywrap/gelato-relay@0.1.1
